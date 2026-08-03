@@ -59,7 +59,7 @@ window.DICE_GAME_BALANCE = Object.freeze({
   scoreCountDuration: 360,
   reducedScoreCountStep: 35,
   introNudgeDelay: 1500,
-  jokerRemarkDuration: 1600,
+  jokerRemarkDuration: 2300,
   roundIntroDuration: 1300,
   roundAdvanceDelay: 1250,
   lossDuration: 2000,
