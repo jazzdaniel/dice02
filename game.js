@@ -1,4 +1,5 @@
 const dice = document.querySelector("#dice");
+const gameTable = document.querySelector(".game-table");
 const rollButton = document.querySelector("#roll-button");
 const scoreButton = document.querySelector("#score-button");
 const rollLabel = document.querySelector("#roll-label");
@@ -15,6 +16,7 @@ const scorePlaque = document.querySelector(".score-plaque");
 const lossOverlay = document.querySelector("#loss-overlay");
 const roundOverlay = document.querySelector("#round-overlay");
 const roundMessage = document.querySelector("#round-message");
+const victoryOverlay = document.querySelector("#victory-overlay");
 const jokerArea = document.querySelector("#joker-area");
 const jokerCard = document.querySelector("#joker-card");
 const jokerSpeech = document.querySelector("#joker-speech");
@@ -60,6 +62,8 @@ let currentResult = null;
 let countingScore = false;
 let transitioningRound = false;
 let losing = false;
+let celebratingVictory = false;
+let pendingJokerRemark = null;
 let introState = "waiting";
 let introLineIndex = -1;
 let introComplete = false;
@@ -158,6 +162,8 @@ function advanceIntro() {
 }
 
 function handleJokerClick() {
+  if (celebratingVictory) return;
+
   if (!introComplete) {
     advanceIntro();
     return;
@@ -207,8 +213,8 @@ function renderState() {
   const campaignComplete = roundComplete && roundIndex === balance.rounds.length - 1;
   targetPlaque.classList.toggle("is-complete", displayedSum >= activeRound.target);
   rollLabel.textContent = campaignComplete ? "Complete" : currentResult === null ? "Roll" : "Roll again";
-  rollButton.disabled = rolling || countingScore || transitioningRound || losing || triesRemaining === 0 || scoresRemaining === 0 || roundComplete;
-  scoreButton.disabled = rolling || countingScore || transitioningRound || losing || currentResult === null || scoresRemaining === 0 || roundComplete;
+  rollButton.disabled = rolling || countingScore || transitioningRound || losing || celebratingVictory || triesRemaining === 0 || scoresRemaining === 0 || roundComplete;
+  scoreButton.disabled = rolling || countingScore || transitioningRound || losing || celebratingVictory || currentResult === null || scoresRemaining === 0 || roundComplete;
 }
 
 function startRound(nextRoundIndex) {
@@ -223,9 +229,13 @@ function startRound(nextRoundIndex) {
   countingScore = false;
   transitioningRound = false;
   losing = false;
+  celebratingVictory = false;
   lossOverlay.classList.remove("is-visible");
   lossOverlay.setAttribute("aria-hidden", "true");
   targetPlaque.classList.remove("is-complete");
+  victoryOverlay.classList.remove("is-visible");
+  victoryOverlay.setAttribute("aria-hidden", "true");
+  gameTable.classList.remove("is-victory-trembling");
   hideJokerLine();
   showRoundIntro();
 }
@@ -244,7 +254,39 @@ function showRoundIntro() {
     roundOverlay.setAttribute("aria-hidden", "true");
     transitioningRound = false;
     renderState();
+    if (pendingJokerRemark) {
+      showJokerRemark(pendingJokerRemark);
+      pendingJokerRemark = null;
+    } else if (roundIndex === balance.rounds.length - 1) {
+      showJokerRemark("lastRound");
+    }
   }, balance.roundIntroDuration);
+}
+
+function showVictory() {
+  if (celebratingVictory) return;
+
+  celebratingVictory = true;
+  transitioningRound = true;
+  showJokerRemark("finalWin", false);
+  gameTable.classList.add("is-victory-trembling");
+  renderState();
+
+  window.setTimeout(() => {
+    gameTable.classList.remove("is-victory-trembling");
+    hideJokerLine();
+    victoryOverlay.classList.remove("is-visible");
+    void victoryOverlay.offsetWidth;
+    victoryOverlay.classList.add("is-visible");
+    victoryOverlay.setAttribute("aria-hidden", "false");
+
+    window.setTimeout(() => {
+      victoryOverlay.classList.remove("is-visible");
+      victoryOverlay.setAttribute("aria-hidden", "true");
+      pendingJokerRemark = "returningPlayer";
+      startRound(0);
+    }, balance.victoryOverlayDuration);
+  }, balance.victoryTrembleDuration);
 }
 
 function showLoss() {
@@ -274,12 +316,12 @@ function resolveRoundState() {
   if (transitioningRound) return;
 
   if (roundSum >= activeRound.target) {
-    showJokerRemark("roundWin");
     if (roundIndex === balance.rounds.length - 1) {
-      renderState();
+      showVictory();
       return;
     }
 
+    showJokerRemark("roundWin");
     transitioningRound = true;
     renderState();
     window.setTimeout(() => startRound(roundIndex + 1), balance.roundAdvanceDelay);

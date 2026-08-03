@@ -42,6 +42,18 @@ window.DICE_GAME_BALANCE = Object.freeze({
       "Defeated by a cube full of ones.",
       "Good luck next time. You'll need more of it.",
     ]),
+    lastRound: Object.freeze([
+      "This is the last round.",
+    ]),
+    finalWin: Object.freeze([
+      "You won! I'm proud.",
+      "You actually did it! I can't believe it.",
+      "A champion of the worst die ever made.",
+      "You beat the joke. Nicely done.",
+    ]),
+    returningPlayer: Object.freeze([
+      "You again?",
+    ]),
   }),
   rounds: Object.freeze([
     Object.freeze({ target: 8, tries: 5, scores: 3 }),
@@ -49,10 +61,6 @@ window.DICE_GAME_BALANCE = Object.freeze({
     Object.freeze({ target: 12, tries: 5, scores: 3 }),
     Object.freeze({ target: 13, tries: 4, scores: 3 }),
     Object.freeze({ target: 14, tries: 4, scores: 3 }),
-    Object.freeze({ target: 15, tries: 4, scores: 3 }),
-    Object.freeze({ target: 16, tries: 4, scores: 3 }),
-    Object.freeze({ target: 17, tries: 4, scores: 3 }),
-    Object.freeze({ target: 18, tries: 4, scores: 3 }),
   ]),
   rollDuration: 980,
   reducedRollDuration: 180,
@@ -63,4 +71,6 @@ window.DICE_GAME_BALANCE = Object.freeze({
   roundIntroDuration: 1300,
   roundAdvanceDelay: 1250,
   lossDuration: 2000,
+  victoryTrembleDuration: 5000,
+  victoryOverlayDuration: 1800,
 });
