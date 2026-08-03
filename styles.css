@@ -1,0 +1,311 @@
+:root {
+  --near-black: #02180f;
+  --ink-blue: #181a2f;
+  --deep-teal: #072d36;
+  --forest: #1d3e2c;
+  --moss-shadow: #202513;
+  --wine: #452729;
+  --violet: #543e60;
+  --slate: #4f5878;
+  --brick: #702c1f;
+  --wood-dark: #85460f;
+  --rose: #b4555b;
+  --peach: #e69375;
+  --wood-mid: #9a6147;
+  --wood-light: #de7035;
+  --gold: #f9c762;
+  --cream: #ffff9e;
+  --die-size: clamp(8.5rem, 18vw, 13rem);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  width: 100%;
+  min-height: 100%;
+  margin: 0;
+  overflow: hidden;
+}
+
+body {
+  background: var(--near-black);
+  color: var(--cream);
+  font-family: Georgia, "Times New Roman", serif;
+}
+
+.game-table {
+  isolation: isolate;
+  position: relative;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) minmax(10rem, 30vh);
+  width: 100vw;
+  height: 100svh;
+  min-height: 32rem;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse at 50% 38%, var(--forest) 0 8%, var(--deep-teal) 36%, var(--near-black) 78%),
+    var(--near-black);
+}
+
+.game-table::before,
+.game-table::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  pointer-events: none;
+}
+
+.game-table::before {
+  inset: 0;
+  opacity: 0.28;
+  background:
+    repeating-linear-gradient(4deg, transparent 0 0.3rem, var(--moss-shadow) 0.35rem, transparent 0.42rem 1.5rem),
+    repeating-linear-gradient(94deg, transparent 0 2rem, var(--deep-teal) 2.05rem, transparent 2.12rem 4.6rem);
+}
+
+.game-table::after {
+  inset: 1rem;
+  border: 0.2rem solid var(--moss-shadow);
+  box-shadow:
+    inset 0 0 0 0.12rem var(--forest),
+    inset 0 0 4rem var(--near-black),
+    0 0 0 0.2rem var(--near-black);
+}
+
+.table-inlay {
+  position: absolute;
+  z-index: -1;
+  top: 5.5%;
+  left: 50%;
+  width: min(72vw, 62rem);
+  height: 58%;
+  translate: -50% 0;
+  border: 0.12rem solid var(--forest);
+  border-radius: 50%;
+  opacity: 0.5;
+  box-shadow:
+    0 0 0 0.35rem var(--near-black),
+    0 0 0 0.48rem var(--deep-teal),
+    inset 0 0 3rem var(--near-black);
+}
+
+.dice-stage {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: 0;
+  padding-top: 4vh;
+  perspective: 62rem;
+  perspective-origin: 50% 42%;
+}
+
+.dice-stage::before {
+  content: "";
+  position: absolute;
+  top: 11%;
+  left: 50%;
+  width: min(42rem, 72vw);
+  height: min(22rem, 48vh);
+  translate: -50% 0;
+  border-radius: 50%;
+  background: radial-gradient(ellipse, color-mix(in srgb, var(--gold) 12%, transparent), transparent 68%);
+  pointer-events: none;
+}
+
+.dice {
+  --rot-x: 0deg;
+  --rot-y: 0deg;
+  --rot-z: 0deg;
+  position: relative;
+  z-index: 2;
+  width: var(--die-size);
+  height: var(--die-size);
+  transform-style: preserve-3d;
+  transform: rotateX(var(--rot-x)) rotateY(var(--rot-y)) rotateZ(var(--rot-z));
+  transition: transform 980ms cubic-bezier(0.16, 0.78, 0.22, 1);
+  will-change: transform;
+}
+
+.dice.is-rolling {
+  animation: dice-hop 980ms cubic-bezier(0.22, 0.7, 0.24, 1);
+}
+
+.dice-face {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template: repeat(3, 1fr) / repeat(3, 1fr);
+  padding: 14%;
+  overflow: hidden;
+  border: clamp(0.18rem, 0.35vw, 0.32rem) solid var(--wood-dark);
+  border-radius: 16%;
+  backface-visibility: hidden;
+  background:
+    linear-gradient(145deg, color-mix(in srgb, var(--cream) 18%, transparent), transparent 30%),
+    repeating-linear-gradient(8deg, var(--wood-light) 0 0.22rem, var(--wood-mid) 0.28rem 0.44rem, var(--wood-dark) 0.5rem 0.56rem, var(--wood-mid) 0.7rem 1rem);
+  box-shadow:
+    inset 0.45rem 0.45rem 0.45rem color-mix(in srgb, var(--gold) 32%, transparent),
+    inset -0.55rem -0.55rem 0.45rem color-mix(in srgb, var(--brick) 72%, transparent),
+    inset 0 0 0 0.32rem color-mix(in srgb, var(--wood-dark) 70%, transparent);
+}
+
+.dice-face::after {
+  content: "";
+  position: absolute;
+  inset: 8%;
+  border: 0.08rem solid color-mix(in srgb, var(--gold) 25%, transparent);
+  border-radius: 13%;
+  opacity: 0.7;
+}
+
+.face-front { transform: translateZ(calc(var(--die-size) / 2)); }
+.face-back { transform: rotateY(180deg) translateZ(calc(var(--die-size) / 2)); }
+.face-right { transform: rotateY(90deg) translateZ(calc(var(--die-size) / 2)); }
+.face-left { transform: rotateY(-90deg) translateZ(calc(var(--die-size) / 2)); }
+.face-top { transform: rotateX(90deg) translateZ(calc(var(--die-size) / 2)); }
+.face-bottom { transform: rotateX(-90deg) translateZ(calc(var(--die-size) / 2)); }
+
+.pip {
+  z-index: 1;
+  align-self: center;
+  justify-self: center;
+  width: clamp(1rem, calc(var(--die-size) * 0.15), 1.8rem);
+  aspect-ratio: 1;
+  border: 0.15rem solid var(--brick);
+  border-radius: 50%;
+  background: radial-gradient(circle at 40% 38%, var(--wine) 0 28%, var(--brick) 48%, var(--near-black) 82%);
+  box-shadow:
+    inset 0.2rem 0.24rem 0.24rem var(--near-black),
+    0.14rem 0.14rem 0 var(--wood-light),
+    -0.08rem -0.08rem 0 var(--wood-dark);
+}
+
+.pip-top-left { grid-area: 1 / 1; }
+.pip-top-right { grid-area: 1 / 3; }
+.pip-middle-left { grid-area: 2 / 1; }
+.pip-center { grid-area: 2 / 2; }
+.pip-middle-right { grid-area: 2 / 3; }
+.pip-bottom-left { grid-area: 3 / 1; }
+.pip-bottom-right { grid-area: 3 / 3; }
+
+.dice-shadow {
+  position: absolute;
+  z-index: 1;
+  top: calc(50% + var(--die-size) * 0.42);
+  left: 50%;
+  width: calc(var(--die-size) * 1.5);
+  height: calc(var(--die-size) * 0.42);
+  translate: -50% -50%;
+  border-radius: 50%;
+  background: var(--near-black);
+  opacity: 0.78;
+  filter: blur(0.7rem);
+  transition: scale 490ms ease, opacity 490ms ease;
+}
+
+.dice-stage:has(.dice.is-rolling) .dice-shadow {
+  scale: 0.72;
+  opacity: 0.4;
+}
+
+.card-space {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  align-items: end;
+  justify-content: center;
+  min-height: 0;
+  padding: 0 1rem 4vh;
+  perspective: 45rem;
+}
+
+.card {
+  --card-width: clamp(5.4rem, 9vw, 7.1rem);
+  position: relative;
+  width: var(--card-width);
+  aspect-ratio: 5 / 7;
+  margin-inline: calc(var(--card-width) * -0.13);
+  padding: 0.38rem;
+  border: 0.18rem solid var(--slate);
+  border-radius: 0.55rem;
+  background: var(--ink-blue);
+  box-shadow:
+    0.35rem 0.55rem 0 var(--near-black),
+    inset 0 0 0 0.18rem var(--violet),
+    inset 0 0 1rem var(--near-black);
+}
+
+.card-left { transform: translateY(0.55rem) rotate(-11deg); }
+.card-center { z-index: 2; transform: translateY(-0.2rem); }
+.card-right { transform: translateY(0.55rem) rotate(11deg); }
+
+.card-pattern {
+  width: 100%;
+  height: 100%;
+  border: 0.13rem solid var(--violet);
+  border-radius: 0.3rem;
+  background:
+    linear-gradient(45deg, transparent 42%, var(--violet) 43% 48%, transparent 49% 51%, var(--violet) 52% 57%, transparent 58%),
+    linear-gradient(-45deg, transparent 42%, var(--violet) 43% 48%, transparent 49% 51%, var(--violet) 52% 57%, transparent 58%),
+    var(--ink-blue);
+  background-size: 1.75rem 1.75rem;
+  box-shadow: inset 0 0 0 0.18rem var(--ink-blue), inset 0 0 0 0.3rem var(--violet);
+}
+
+@keyframes dice-hop {
+  0%, 100% { translate: 0 0; }
+  38% { translate: 0 calc(var(--die-size) * -0.34); }
+  68% { translate: 0 calc(var(--die-size) * -0.12); }
+}
+
+@media (max-width: 42rem) {
+  :root {
+    --die-size: clamp(7.4rem, 34vw, 10rem);
+  }
+
+  .game-table {
+    grid-template-rows: minmax(0, 1fr) minmax(9.5rem, 28vh);
+    min-height: 28rem;
+  }
+
+  .game-table::after {
+    inset: 0.55rem;
+  }
+
+  .table-inlay {
+    top: 10%;
+    width: 88vw;
+    height: 48%;
+  }
+
+  .dice-stage {
+    padding-top: 7vh;
+    perspective: 48rem;
+  }
+
+  .card-space {
+    padding-bottom: max(1.4rem, env(safe-area-inset-bottom));
+  }
+
+  .card {
+    --card-width: clamp(4.8rem, 22vw, 6.2rem);
+  }
+}
+
+@media (max-height: 34rem) and (orientation: landscape) {
+  :root { --die-size: clamp(6.5rem, 24vh, 8rem); }
+  .game-table { grid-template-rows: minmax(0, 1fr) 7.5rem; min-height: 22rem; }
+  .card { --card-width: 4.2rem; }
+  .card-space { padding-bottom: 0.8rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dice,
+  .dice.is-rolling {
+    transition-duration: 180ms;
+    animation-duration: 180ms;
+  }
+}
