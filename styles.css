@@ -80,8 +80,8 @@ body {
   z-index: -1;
   top: 5.5%;
   left: 50%;
-  width: min(72vw, 62rem);
-  height: 58%;
+  width: min(72vw, 58svh, 62rem);
+  aspect-ratio: 1;
   translate: -50% 0;
   border: 0.12rem solid var(--forest);
   border-radius: 50%;
@@ -141,7 +141,7 @@ body {
   padding: 14%;
   overflow: hidden;
   border: clamp(0.18rem, 0.35vw, 0.32rem) solid var(--wood-dark);
-  border-radius: 16%;
+  border-radius: 0;
   backface-visibility: hidden;
   background:
     linear-gradient(145deg, color-mix(in srgb, var(--cream) 18%, transparent), transparent 30%),
@@ -277,8 +277,7 @@ body {
 
   .table-inlay {
     top: 10%;
-    width: 88vw;
-    height: 48%;
+    width: min(88vw, 48svh);
   }
 
   .dice-stage {
