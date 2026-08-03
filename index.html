@@ -13,9 +13,9 @@
 
       <section class="dice-stage" aria-label="Press Space to roll the die">
         <div class="status-plaque target-plaque" aria-live="polite">
-          <span class="plaque-label">Target</span>
-          <strong class="target-value" id="target-value">12</strong>
-          <span class="target-progress"><span id="progress-value">0</span> / 12</span>
+          <span class="plaque-label">Round <span id="round-value">1</span> · Target</span>
+          <strong class="target-value" id="target-value">8</strong>
+          <span class="target-progress"><span id="progress-value">0</span> / <span id="progress-target">8</span></span>
         </div>
 
         <div class="status-plaque tries-plaque" aria-live="polite">
@@ -96,6 +96,7 @@
       </section>
     </main>
 
+    <script src="balance.js"></script>
     <script src="game.js"></script>
   </body>
 </html>
