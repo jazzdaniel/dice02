@@ -12,6 +12,35 @@
       <div class="table-inlay" aria-hidden="true"></div>
 
       <section class="dice-stage" aria-label="Press Space to roll the die">
+        <div class="status-plaque target-plaque" aria-live="polite">
+          <span class="plaque-label">Target</span>
+          <strong class="target-value" id="target-value">12</strong>
+          <span class="target-progress"><span id="progress-value">0</span> / 12</span>
+        </div>
+
+        <div class="status-plaque tries-plaque" aria-live="polite">
+          <span class="plaque-label">Tries</span>
+          <div class="try-markers" id="try-markers" aria-hidden="true">
+            <span class="try-marker"></span>
+            <span class="try-marker"></span>
+            <span class="try-marker"></span>
+            <span class="try-marker"></span>
+            <span class="try-marker"></span>
+          </div>
+          <span class="tries-count"><span id="tries-value">5</span> left</span>
+        </div>
+
+        <div class="status-plaque score-plaque" aria-live="polite">
+          <span class="plaque-label">Round sum</span>
+          <strong id="score-value">0</strong>
+          <div class="score-markers" id="score-markers" aria-hidden="true">
+            <span class="score-marker"></span>
+            <span class="score-marker"></span>
+            <span class="score-marker"></span>
+          </div>
+          <span class="scores-count"><span id="scores-value">3</span> scores</span>
+        </div>
+
         <div class="dice-shadow" aria-hidden="true"></div>
         <div class="dice" id="dice" role="img" aria-label="Die showing 1 on top">
           <div class="dice-face face-top" data-face="1">
@@ -51,6 +80,16 @@
       </section>
 
       <section class="card-space" aria-label="Three face-down cards">
+        <div class="action-panel" aria-label="Dice actions">
+          <button class="game-button roll-button" id="roll-button" type="button">
+            <span id="roll-label">Roll</span>
+            <kbd>Space</kbd>
+          </button>
+          <button class="game-button score-button" id="score-button" type="button" disabled>
+            <span>Score</span>
+            <kbd>Enter</kbd>
+          </button>
+        </div>
         <div class="card card-left" aria-hidden="true"><div class="card-pattern"></div></div>
         <div class="card card-center" aria-hidden="true"><div class="card-pattern"></div></div>
         <div class="card card-right" aria-hidden="true"><div class="card-pattern"></div></div>
