@@ -11,7 +11,7 @@
     <main class="game-table" aria-label="Wooden dice rolling prototype">
       <div class="table-inlay" aria-hidden="true"></div>
 
-      <section class="dice-stage" aria-label="Press Space to roll the die">
+      <section class="dice-stage" aria-label="Press Space or R to roll the die">
         <div class="status-plaque target-plaque" aria-live="polite">
           <span class="plaque-label">Round <span id="round-value">1</span> · Target</span>
           <strong class="target-value" id="target-value">8</strong>
@@ -43,32 +43,22 @@
 
         <div class="dice-shadow" aria-hidden="true"></div>
         <div class="dice" id="dice" role="img" aria-label="Die showing 1 on top">
-          <div class="dice-face face-top" data-face="1">
+          <div class="dice-face face-top" data-face="1" data-value="1">
             <span class="pip pip-center"></span>
           </div>
-          <div class="dice-face face-front" data-face="2">
-            <span class="pip pip-top-left"></span>
-            <span class="pip pip-bottom-right"></span>
-          </div>
-          <div class="dice-face face-right" data-face="3">
-            <span class="pip pip-top-left"></span>
+          <div class="dice-face face-front" data-face="2" data-value="1">
             <span class="pip pip-center"></span>
-            <span class="pip pip-bottom-right"></span>
           </div>
-          <div class="dice-face face-left" data-face="4">
-            <span class="pip pip-top-left"></span>
-            <span class="pip pip-top-right"></span>
-            <span class="pip pip-bottom-left"></span>
-            <span class="pip pip-bottom-right"></span>
-          </div>
-          <div class="dice-face face-back" data-face="5">
-            <span class="pip pip-top-left"></span>
-            <span class="pip pip-top-right"></span>
+          <div class="dice-face face-right" data-face="3" data-value="1">
             <span class="pip pip-center"></span>
-            <span class="pip pip-bottom-left"></span>
-            <span class="pip pip-bottom-right"></span>
           </div>
-          <div class="dice-face face-bottom" data-face="6">
+          <div class="dice-face face-left" data-face="4" data-value="1">
+            <span class="pip pip-center"></span>
+          </div>
+          <div class="dice-face face-back" data-face="5" data-value="1">
+            <span class="pip pip-center"></span>
+          </div>
+          <div class="dice-face face-bottom" data-face="6" data-value="6">
             <span class="pip pip-top-left"></span>
             <span class="pip pip-middle-left"></span>
             <span class="pip pip-bottom-left"></span>
@@ -79,21 +69,81 @@
         </div>
       </section>
 
+      <aside class="joker-area" id="joker-area" aria-label="Joker guide">
+        <div class="joker-speech" id="joker-speech" role="status" aria-live="polite" aria-hidden="true">
+          <span id="joker-line"></span>
+        </div>
+        <button class="joker-card is-awaiting" id="joker-card" type="button" aria-label="Reveal the trembling card">
+          <span class="joker-card-inner">
+            <span class="joker-card-face joker-card-back">
+              <span class="joker-back-pattern"></span>
+            </span>
+            <span class="joker-card-face joker-card-front">
+              <span class="joker-art" aria-hidden="true">
+                <span class="joker-hat">
+                  <i></i><i></i><i></i>
+                </span>
+                <span class="joker-head">
+                  <i class="joker-eye eye-left"></i>
+                  <i class="joker-eye eye-right"></i>
+                  <i class="joker-grin"></i>
+                </span>
+                <span class="joker-collar"><i></i><i></i><i></i></span>
+              </span>
+              <strong>Joker</strong>
+            </span>
+          </span>
+        </button>
+      </aside>
+
       <section class="card-space" aria-label="Three face-down cards">
         <div class="action-panel" aria-label="Dice actions">
           <button class="game-button roll-button" id="roll-button" type="button">
             <span id="roll-label">Roll</span>
-            <kbd>Space</kbd>
+            <kbd>Space / R</kbd>
           </button>
           <button class="game-button score-button" id="score-button" type="button" disabled>
             <span>Score</span>
-            <kbd>Enter</kbd>
+            <kbd>Enter / S</kbd>
           </button>
         </div>
-        <div class="card card-left" aria-hidden="true"><div class="card-pattern"></div></div>
-        <div class="card card-center" aria-hidden="true"><div class="card-pattern"></div></div>
-        <div class="card card-right" aria-hidden="true"><div class="card-pattern"></div></div>
+        <button class="card table-card card-left" type="button" aria-label="Reveal empty card">
+          <span class="table-card-inner">
+            <span class="table-card-face table-card-back"><span class="card-pattern"></span></span>
+            <span class="table-card-face table-card-front"><strong>Empty</strong></span>
+          </span>
+        </button>
+        <button class="card table-card card-center" type="button" aria-label="Reveal empty card">
+          <span class="table-card-inner">
+            <span class="table-card-face table-card-back"><span class="card-pattern"></span></span>
+            <span class="table-card-face table-card-front"><strong>Empty</strong></span>
+          </span>
+        </button>
+        <button class="card table-card card-right" type="button" aria-label="Reveal empty card">
+          <span class="table-card-inner">
+            <span class="table-card-face table-card-back"><span class="card-pattern"></span></span>
+            <span class="table-card-face table-card-front"><strong>Empty</strong></span>
+          </span>
+        </button>
       </section>
+
+      <div class="loss-overlay" id="loss-overlay" role="status" aria-live="assertive" aria-hidden="true">
+        <div class="loss-message">
+          <span>You</span>
+          <span>Lose</span>
+          <span class="blood-drips" aria-hidden="true">
+            <i class="blood-drip drip-one"></i>
+            <i class="blood-drip drip-two"></i>
+            <i class="blood-drip drip-three"></i>
+            <i class="blood-drip drip-four"></i>
+            <i class="blood-drip drip-five"></i>
+          </span>
+        </div>
+      </div>
+
+      <div class="round-overlay" id="round-overlay" role="status" aria-live="polite" aria-hidden="true">
+        <div class="round-message" id="round-message">Round 1</div>
+      </div>
     </main>
 
     <script src="balance.js"></script>

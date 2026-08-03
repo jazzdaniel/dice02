@@ -12,6 +12,14 @@ const progressValue = document.querySelector("#progress-value");
 const targetPlaque = document.querySelector(".target-plaque");
 const triesPlaque = document.querySelector(".tries-plaque");
 const scorePlaque = document.querySelector(".score-plaque");
+const lossOverlay = document.querySelector("#loss-overlay");
+const roundOverlay = document.querySelector("#round-overlay");
+const roundMessage = document.querySelector("#round-message");
+const jokerArea = document.querySelector("#joker-area");
+const jokerCard = document.querySelector("#joker-card");
+const jokerSpeech = document.querySelector("#joker-speech");
+const jokerLine = document.querySelector("#joker-line");
+const tableCards = [...document.querySelectorAll(".table-card")];
 const tryMarkers = [...document.querySelectorAll(".try-marker")];
 const scoreMarkers = [...document.querySelectorAll(".score-marker")];
 
@@ -30,6 +38,15 @@ const landingAngles = {
   6: { x: 90, y: 0, z: 0 },
 };
 
+const faceValues = {
+  1: 1,
+  2: 1,
+  3: 1,
+  4: 1,
+  5: 1,
+  6: 6,
+};
+
 const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 let rolling = false;
 let revolutions = { x: 0, y: 0, z: 0 };
@@ -42,6 +59,124 @@ let displayedSum = 0;
 let currentResult = null;
 let countingScore = false;
 let transitioningRound = false;
+let losing = false;
+let introState = "waiting";
+let introLineIndex = -1;
+let introComplete = false;
+let consecutiveOnes = 0;
+let jokerRemarkTimer = null;
+let introNudgeTimer = null;
+const lastJokerRemarks = {};
+
+function getJokerRemark(state) {
+  const options = balance.jokerRemarks[state];
+  const available = options.filter((line) => line !== lastJokerRemarks[state]);
+  const choices = available.length > 0 ? available : options;
+  const line = choices[Math.floor(Math.random() * choices.length)];
+  lastJokerRemarks[state] = line;
+  return line;
+}
+
+function setJokerRevealed(revealed) {
+  jokerCard.classList.toggle("is-revealed", revealed);
+  jokerCard.setAttribute("aria-label", revealed ? "Turn Joker face down" : "Reveal Joker guide");
+}
+
+function showJokerLine(message, timed = false, revealJoker = true) {
+  window.clearTimeout(jokerRemarkTimer);
+  if (introComplete && revealJoker) {
+    setJokerRevealed(true);
+  }
+  jokerLine.textContent = message;
+  jokerSpeech.classList.remove("is-visible");
+  void jokerSpeech.offsetWidth;
+  jokerSpeech.classList.add("is-visible");
+  jokerSpeech.setAttribute("aria-hidden", "false");
+
+  if (timed) {
+    jokerRemarkTimer = window.setTimeout(hideJokerLine, balance.jokerRemarkDuration);
+  }
+}
+
+function showJokerRemark(state, timed = true, revealJoker = true) {
+  showJokerLine(getJokerRemark(state), timed, revealJoker);
+}
+
+function hideJokerLine() {
+  window.clearTimeout(jokerRemarkTimer);
+  jokerSpeech.classList.remove("is-visible");
+  jokerSpeech.setAttribute("aria-hidden", "true");
+}
+
+function beginIntro() {
+  introState = "waiting";
+  introLineIndex = -1;
+  introComplete = false;
+  transitioningRound = true;
+  dice.classList.add("is-idle-spinning");
+  jokerCard.classList.add("is-awaiting");
+  jokerCard.classList.remove("is-revealed");
+  jokerCard.setAttribute("aria-label", "Reveal the trembling card");
+  window.clearTimeout(introNudgeTimer);
+  introNudgeTimer = window.setTimeout(() => {
+    if (introState === "waiting") {
+      showJokerRemark("introNudge", false, false);
+    }
+  }, balance.introNudgeDelay);
+  renderState();
+}
+
+function advanceIntro() {
+  if (introComplete) return;
+
+  if (introState === "waiting") {
+    window.clearTimeout(introNudgeTimer);
+    introState = "dialogue";
+    jokerCard.classList.remove("is-awaiting");
+    jokerCard.classList.add("is-revealed");
+    jokerCard.setAttribute("aria-label", "Advance Joker dialogue");
+    introLineIndex = 0;
+    showJokerLine(balance.introDialogue[introLineIndex]);
+    return;
+  }
+
+  if (introLineIndex < balance.introDialogue.length - 1) {
+    introLineIndex += 1;
+    showJokerLine(balance.introDialogue[introLineIndex]);
+    return;
+  }
+
+  introState = "complete";
+  introComplete = true;
+  hideJokerLine();
+  dice.classList.remove("is-idle-spinning");
+  dice.style.setProperty("--rot-x", "-90deg");
+  dice.style.setProperty("--rot-y", "0deg");
+  dice.style.setProperty("--rot-z", "0deg");
+  jokerCard.setAttribute("aria-label", "Joker guide");
+  startRound(0);
+}
+
+function handleJokerClick() {
+  if (!introComplete) {
+    advanceIntro();
+    return;
+  }
+
+  if (jokerCard.classList.contains("is-revealed")) {
+    setJokerRevealed(false);
+    showJokerRemark("dismissed", true, false);
+  } else {
+    setJokerRevealed(true);
+    showJokerRemark("returned", true, false);
+  }
+}
+
+function revealEmptyCard(card) {
+  if (!introComplete) return;
+  const revealed = card.classList.toggle("is-revealed");
+  card.setAttribute("aria-label", revealed ? "Turn empty card face down" : "Reveal empty card");
+}
 
 function triggerTremble(plaque) {
   plaque.classList.remove("is-trembling");
@@ -72,8 +207,8 @@ function renderState() {
   const campaignComplete = roundComplete && roundIndex === balance.rounds.length - 1;
   targetPlaque.classList.toggle("is-complete", displayedSum >= activeRound.target);
   rollLabel.textContent = campaignComplete ? "Complete" : currentResult === null ? "Roll" : "Roll again";
-  rollButton.disabled = rolling || countingScore || transitioningRound || triesRemaining === 0 || roundComplete;
-  scoreButton.disabled = rolling || countingScore || transitioningRound || currentResult === null || scoresRemaining === 0 || roundComplete;
+  rollButton.disabled = rolling || countingScore || transitioningRound || losing || triesRemaining === 0 || scoresRemaining === 0 || roundComplete;
+  scoreButton.disabled = rolling || countingScore || transitioningRound || losing || currentResult === null || scoresRemaining === 0 || roundComplete;
 }
 
 function startRound(nextRoundIndex) {
@@ -84,16 +219,62 @@ function startRound(nextRoundIndex) {
   roundSum = 0;
   displayedSum = 0;
   currentResult = null;
+  consecutiveOnes = 0;
   countingScore = false;
   transitioningRound = false;
+  losing = false;
+  lossOverlay.classList.remove("is-visible");
+  lossOverlay.setAttribute("aria-hidden", "true");
   targetPlaque.classList.remove("is-complete");
+  hideJokerLine();
+  showRoundIntro();
+}
+
+function showRoundIntro() {
+  transitioningRound = true;
+  roundMessage.textContent = `Round ${roundIndex + 1}`;
+  roundOverlay.classList.remove("is-visible");
+  void roundOverlay.offsetWidth;
+  roundOverlay.classList.add("is-visible");
+  roundOverlay.setAttribute("aria-hidden", "false");
   renderState();
+
+  window.setTimeout(() => {
+    roundOverlay.classList.remove("is-visible");
+    roundOverlay.setAttribute("aria-hidden", "true");
+    transitioningRound = false;
+    renderState();
+  }, balance.roundIntroDuration);
+}
+
+function showLoss() {
+  if (losing) return;
+
+  losing = true;
+  transitioningRound = true;
+  currentResult = null;
+  lossOverlay.classList.remove("is-visible");
+  void lossOverlay.offsetWidth;
+  lossOverlay.classList.add("is-visible");
+  lossOverlay.setAttribute("aria-hidden", "false");
+  jokerArea.classList.add("is-over-overlay");
+  showJokerRemark("runLoss");
+  renderState();
+
+  window.setTimeout(() => {
+    lossOverlay.classList.remove("is-visible");
+    lossOverlay.setAttribute("aria-hidden", "true");
+    jokerArea.classList.remove("is-over-overlay");
+    hideJokerLine();
+    startRound(0);
+  }, balance.lossDuration);
 }
 
 function resolveRoundState() {
   if (transitioningRound) return;
 
   if (roundSum >= activeRound.target) {
+    showJokerRemark("roundWin");
     if (roundIndex === balance.rounds.length - 1) {
       renderState();
       return;
@@ -105,24 +286,24 @@ function resolveRoundState() {
     return;
   }
 
-  const noPlayableResult = currentResult === null || scoresRemaining === 0;
-  if (triesRemaining === 0 && noPlayableResult) {
-    transitioningRound = true;
-    renderState();
-    window.setTimeout(() => startRound(roundIndex), balance.roundRetryDelay);
+  const noScoringOpportunities = scoresRemaining === 0;
+  const noRollsAndNoPendingScore = triesRemaining === 0 && currentResult === null;
+  if (noScoringOpportunities || noRollsAndNoPendingScore) {
+    showLoss();
   }
 }
 
 function rollDie() {
-  if (rolling || countingScore || transitioningRound || triesRemaining === 0 || roundSum >= activeRound.target) return;
+  if (rolling || countingScore || transitioningRound || triesRemaining === 0 || scoresRemaining === 0 || roundSum >= activeRound.target) return;
 
   rolling = true;
-  const result = Math.floor(Math.random() * 6) + 1;
+  const landedFace = Math.floor(Math.random() * 6) + 1;
+  const result = faceValues[landedFace];
   triesRemaining -= 1;
   currentResult = null;
   triggerTremble(triesPlaque);
   renderState();
-  const landing = landingAngles[result];
+  const landing = landingAngles[landedFace];
   const extraTurns = reducedMotion.matches ? 1 : 2;
 
   revolutions = {
@@ -145,6 +326,15 @@ function rollDie() {
     dice.setAttribute("aria-label", `Die showing ${result} on top`);
     currentResult = result;
     rolling = false;
+    if (result === 6) {
+      consecutiveOnes = 0;
+      showJokerRemark("rareSix");
+    } else {
+      consecutiveOnes += 1;
+      if (consecutiveOnes >= 2) {
+        showJokerRemark("repeatedOne");
+      }
+    }
     renderState();
     resolveRoundState();
   }, duration);
@@ -175,19 +365,30 @@ function scoreRoll() {
 
 rollButton.addEventListener("click", rollDie);
 scoreButton.addEventListener("click", scoreRoll);
+jokerCard.addEventListener("click", handleJokerClick);
+tableCards.forEach((card) => card.addEventListener("click", () => revealEmptyCard(card)));
 
 window.addEventListener("keydown", (event) => {
   if (event.repeat) return;
 
-  if (event.code === "Space") {
+  const focusedCard = event.target.closest?.("#joker-card, .table-card");
+  if (focusedCard && (event.code === "Enter" || event.code === "Space")) return;
+
+  if (!introComplete && (event.code === "Enter" || event.code === "KeyR" || event.code === "KeyS")) {
+    event.preventDefault();
+    advanceIntro();
+    return;
+  }
+
+  if (event.code === "Space" || event.code === "KeyR") {
     event.preventDefault();
     rollDie();
   }
 
-  if (event.code === "Enter") {
+  if (event.code === "Enter" || event.code === "KeyS") {
     event.preventDefault();
     scoreRoll();
   }
 });
 
-renderState();
+beginIntro();
