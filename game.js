@@ -190,6 +190,17 @@ function triggerTremble(plaque) {
   plaque.classList.add("is-trembling");
 }
 
+function blinkConsumedMarker(markers, remaining) {
+  const marker = markers[remaining];
+  if (!marker) return;
+
+  marker.classList.add("is-consuming");
+  window.setTimeout(() => {
+    marker.classList.remove("is-consuming");
+    renderState();
+  }, 800);
+}
+
 function renderState() {
   roundValue.textContent = roundIndex + 1;
   targetValue.textContent = activeRound.target;
@@ -201,12 +212,12 @@ function renderState() {
 
   tryMarkers.forEach((marker, index) => {
     marker.hidden = index >= activeRound.tries;
-    marker.classList.toggle("is-spent", index >= triesRemaining);
+    marker.classList.toggle("is-spent", index >= triesRemaining && !marker.classList.contains("is-consuming"));
   });
 
   scoreMarkers.forEach((marker, index) => {
     marker.hidden = index >= activeRound.scores;
-    marker.classList.toggle("is-spent", index >= scoresRemaining);
+    marker.classList.toggle("is-spent", index >= scoresRemaining && !marker.classList.contains("is-consuming"));
   });
 
   const roundComplete = roundSum >= activeRound.target;
@@ -230,6 +241,7 @@ function startRound(nextRoundIndex) {
   transitioningRound = false;
   losing = false;
   celebratingVictory = false;
+  [...tryMarkers, ...scoreMarkers].forEach((marker) => marker.classList.remove("is-consuming", "is-spent"));
   lossOverlay.classList.remove("is-visible");
   lossOverlay.setAttribute("aria-hidden", "true");
   targetPlaque.classList.remove("is-complete");
@@ -342,6 +354,7 @@ function rollDie() {
   const landedFace = Math.floor(Math.random() * 6) + 1;
   const result = faceValues[landedFace];
   triesRemaining -= 1;
+  blinkConsumedMarker(tryMarkers, triesRemaining);
   currentResult = null;
   triggerTremble(triesPlaque);
   renderState();
@@ -387,6 +400,7 @@ function scoreRoll() {
   const pointsToAdd = currentResult;
   roundSum += currentResult;
   scoresRemaining -= 1;
+  blinkConsumedMarker(scoreMarkers, scoresRemaining);
   currentResult = null;
   countingScore = true;
   triggerTremble(scorePlaque);
